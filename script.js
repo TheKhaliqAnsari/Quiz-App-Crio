@@ -1,95 +1,75 @@
-const questions = [
-    {
-        text: "Which language is primarily used for web app development?",
-        options: ["C#", "Python", "JavaScript", "Swift"],
-        correct: 2
-    },
-    {
-        text: "Which of the following is a relational database management system?",
-        options: ["Oracle", "Scala", "Perl", "Java"],
-        correct: 0
-    },
-    {
-        text: "In which language is memory management provided by JVM?",
-        options: ["Java", "C", "C++", "Python"],
-        correct: 0
-    },
-    {
-        text: "What does HTML stand for?",
-        options: ["Hyperlink and Text Markup Language", "High Technology Modern Language", "Hyper Text Markup Language", "Home Tool Markup Language"],
-        correct: 2
-    }
-];
+let currentQuestion = 0;
+let score = 0;
 
-const quizContainer = document.querySelector(".quiz-container");
 const questionElement = document.getElementById("question");
-const answerList = document.getElementById("answer-list");
+const answerListElement = document.getElementById("answer-list");
 const submitButton = document.getElementById("submit");
 const nextButton = document.getElementById("next");
 
-let currentQuestionIndex = 0;
-let score = 0;
+function showQuestion(questionIndex) {
+  const question = questions[questionIndex];
+  questionElement.textContent = question.text;
+  answerListElement.innerHTML = "";
 
-function showQuestion(index) {
-    const question = questions[index];
-    questionElement.textContent = question.text;
-    answerList.innerHTML = '';
+  for (let i = 0; i < question.options.length; i++) {
+    const option = question.options[i];
+    const listItem = document.createElement("li");
+    const radioButton = document.createElement("input");
+    radioButton.type = "radio";
+    radioButton.name = "answer";
+    radioButton.value = i;
+    listItem.appendChild(radioButton);
+    listItem.appendChild(document.createTextNode(option));
+    answerListElement.appendChild(listItem);
+  }
 
-    question.options.forEach((option, idx) => {
-        const li = document.createElement("li");
-        const radioInput = document.createElement("input");
-        radioInput.type = "radio";
-        radioInput.name = "answer";
-        radioInput.id = `option-${idx}`;
-        radioInput.value = idx;
-
-        const label = document.createElement("label");
-        label.textContent = option;
-        label.htmlFor = `option-${idx}`;
-
-        li.appendChild(radioInput);
-        li.appendChild(label);
-
-        answerList.appendChild(li);
-    });
-
-    submitButton.style.display = "block";
-    nextButton.style.display = "none";
+  submitButton.style.display = "block";
+  nextButton.style.display = "none";
 }
 
-function checkAnswer(index, selectedOption) {
-    const question = questions[index];
-    const correctIndex = question.correct;
+function checkAnswer() {
+  const selectedOption = document.querySelector(
+    'input[name="answer"]:checked'
+  );
 
-    if (selectedOption === correctIndex) {
-        answerList.querySelector(`#option-${correctIndex} + label`).style.backgroundColor = "lightgreen";
-        score++;
-    } else {
-        answerList.querySelector(`#option-${correctIndex} + label`).style.backgroundColor = "lightgreen";
-        answerList.querySelector(`#option-${selectedOption} + label`).style.backgroundColor = "red";
+  if (selectedOption) {
+    const selectedAnswerIndex = parseInt(selectedOption.value);
+    const currentQuestionData = questions[currentQuestion];
+
+    if (selectedAnswerIndex === currentQuestionData.correct) {
+      score++;
     }
 
+    answerListElement.children[
+      currentQuestionData.correct
+    ].style.backgroundColor = "lightgreen";
     submitButton.style.display = "none";
     nextButton.style.display = "block";
+  } else {
+    alert("Please select an answer!");
+  }
 }
 
-submitButton.addEventListener("click", () => {
-    const selectedOption = Array.from(answerList.querySelectorAll("input[type=radio]:checked")).map((radio) => parseInt(radio.value));
+function nextQuestion() {
+  currentQuestion++;
 
-    if (selectedOption.length === 0) {
-        alert("Please select an answer!");
-    } else {
-        checkAnswer(currentQuestionIndex, selectedOption[0]);
+  if (currentQuestion < questions.length) {
+    showQuestion(currentQuestion);
+  } else {
+    alert(`Quiz ended! Your score: ${score}/${questions.length}`);
+  }
+}
+
+answerListElement.addEventListener("click", function (event) {
+  if (event.target.nodeName === "LI") {
+    const radioInput = event.target.querySelector("input[type='radio']");
+    if (radioInput) {
+      radioInput.checked = true;
     }
+  }
 });
 
-nextButton.addEventListener("click", () => {
-    if (currentQuestionIndex < questions.length - 1) {
-        currentQuestionIndex++;
-        showQuestion(currentQuestionIndex);
-    } else {
-        alert(`Quiz completed! Your score is ${score} out of ${questions.length}`);
-    }
-});
+submitButton.addEventListener("click", checkAnswer);
+nextButton.addEventListener("click", nextQuestion);
 
-showQuestion(currentQuestionIndex);
+showQuestion(currentQuestion);
